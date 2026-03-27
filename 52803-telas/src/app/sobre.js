@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 export default function SobreScreen() {
   return (
-    <>
+    <View>
       <Stack.Screen options={{ title: 'Sobre' }} />
       <View style={styles.container}>
         <Text style={styles.titulo}>Sobre o App</Text>
@@ -20,7 +20,7 @@ export default function SobreScreen() {
           Voltar ao Início
         </Link>
       </View>
-    </>
+    </View>
   );
 }
 
