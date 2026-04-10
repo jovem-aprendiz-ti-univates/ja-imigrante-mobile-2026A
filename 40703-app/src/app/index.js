@@ -8,12 +8,16 @@ import {
   ScrollView,
   StatusBar,
 } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Link, Stack } from 'expo-router';
+
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-    </SafeAreaProvider>
+    <View>
+      <Link href="/batata">
+        Ir para Batata
+      </Link>
+    </View>
   );
 }
 

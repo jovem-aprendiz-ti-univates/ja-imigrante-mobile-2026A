@@ -8,25 +8,24 @@ import {
   ScrollView,
   StatusBar,
 } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Link, Stack } from 'expo-router';
 
-export default function App() {
+export default function App2() {
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle="light-content" backgroundColor="#0f0f1a" />
-
-      <SafeAreaView style={estilos.telaSegura}>
+    <View>
 
         {/* ============================================================
             PARTE 1 — Barra superior fixa
         ============================================================ */}
         <View style={estilos.barraSuperior}>
-          {/* Botão hambúrguer: três linhas empilhadas */}
+        {/* Botão hambúrguer: três linhas empilhadas */}
+        <Link href="/">
           <Pressable style={estilos.botaoHamburguer}>
             <View style={estilos.linhaHamburguer} />
             <View style={estilos.linhaHamburguer} />
             <View style={estilos.linhaHamburguer} />
           </Pressable>
+        </Link>
 
           {/* Campo de busca — visual apenas */}
           <TextInput
@@ -198,8 +197,7 @@ export default function App() {
           </ScrollView>
         </View>
 
-      </SafeAreaView>
-    </SafeAreaProvider>
+    </View>
   );
 }
 
