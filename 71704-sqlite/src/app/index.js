@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, TextInput, Pressable, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { db, initDb } from '../data/db';
 
@@ -77,9 +77,9 @@ export default function HomeScreen() {
         onChangeText={setCurso}
       />
 
-      <TouchableOpacity style={styles.botao} onPress={salvar}>
+      <Pressable style={styles.botao} onPress={salvar}>
         <Text style={styles.botaoTexto}>Salvar</Text>
-      </TouchableOpacity>
+      </Pressable>
 
       <FlatList
         data={alunos}
@@ -91,9 +91,9 @@ export default function HomeScreen() {
               <Text style={styles.nome}>{item.nome}</Text>
               <Text style={styles.curso}>{item.curso}</Text>
             </View>
-            <TouchableOpacity onPress={() => excluir(item.id, item.nome)}>
+            <Pressable onPress={() => excluir(item.id, item.nome)}>
               <Text style={styles.excluir}>Excluir</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
         ListEmptyComponent={

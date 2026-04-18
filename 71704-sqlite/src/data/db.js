@@ -8,7 +8,7 @@ export function initDb() {
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS alunos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nome TEXT NOT NULL,
+      nome VARCHAR(255) NOT NULL,
       curso TEXT NOT NULL
     );
   `);
