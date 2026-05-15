@@ -1,62 +1,79 @@
 import { useEffect, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TextInput, Pressable, View } from 'react-native';
+import { Alert, FlatList, Image, StyleSheet, Text, TextInput, Pressable, View } from 'react-native';
 import { Link, Stack } from 'expo-router';
-import { atualizarAluno, criarAluno, excluirAluno, listarAlunos } from '../data/alunos';
+import { atualizarJogo, criarJogo, excluirJogo, listarJogos } from '../services/jogos';
 
 export default function HomeScreen() {
   const [nome, setNome] = useState('');
-  const [curso, setCurso] = useState('');
-  const [alunos, setAlunos] = useState([]);
+  const [urlImagem, setUrlImagem] = useState('');
+  const [loja, setLoja] = useState('');
+  const [jogos, setJogos] = useState([]);
   const [editandoId, setEditandoId] = useState(null);
+  const [carregando, setCarregando] = useState(false);
 
-  function carregarAlunos() {
-    setAlunos(listarAlunos());
+  async function carregarJogos() {
+    try {
+      const dados = await listarJogos();
+      setJogos(dados);
+    } catch {
+      Alert.alert('Erro', 'Não foi possível conectar à API. Verifique se ela está rodando.');
+    }
   }
 
   useEffect(() => {
-    carregarAlunos();
+    carregarJogos();
   }, []);
 
-  function salvar() {
-    if (!nome.trim() || !curso.trim()) {
-      Alert.alert('Atenção', 'Preencha todos os campos.');
+  async function salvar() {
+    if (!nome.trim()) {
+      Alert.alert('Atenção', 'O nome é obrigatório.');
       return;
     }
 
-    if (editandoId !== null) {
-      atualizarAluno(editandoId, nome.trim(), curso.trim());
-    } else {
-      criarAluno(nome.trim(), curso.trim());
+    setCarregando(true);
+    try {
+      if (editandoId !== null) {
+        await atualizarJogo(editandoId, nome.trim(), urlImagem.trim(), loja.trim());
+      } else {
+        await criarJogo(nome.trim(), urlImagem.trim(), loja.trim());
+      }
+      limparFormulario();
+      await carregarJogos();
+    } catch {
+      Alert.alert('Erro', 'Não foi possível salvar o jogo.');
+    } finally {
+      setCarregando(false);
     }
-
-    limparFormulario();
-    carregarAlunos();
   }
 
-  function editar(aluno) {
-    setEditandoId(aluno.id);
-    setNome(aluno.nome);
-    setCurso(aluno.curso);
+  function editar(jogo) {
+    setEditandoId(jogo.id);
+    setNome(jogo.nome);
+    setUrlImagem(jogo.urlImagem);
+    setLoja(jogo.loja);
   }
 
   function limparFormulario() {
     setEditandoId(null);
     setNome('');
-    setCurso('');
+    setUrlImagem('');
+    setLoja('');
   }
 
-  function excluir(id, nome) {
-    Alert.alert('Excluir', `Remover "${nome}"?`, [
+  function excluir(id, nomeJogo) {
+    Alert.alert('Excluir', `Remover "${nomeJogo}"?`, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir',
         style: 'destructive',
-        onPress: () => {
-          excluirAluno(id);
-          if (editandoId === id) {
-            limparFormulario();
+        onPress: async () => {
+          try {
+            await excluirJogo(id);
+            if (editandoId === id) limparFormulario();
+            await carregarJogos();
+          } catch {
+            Alert.alert('Erro', 'Não foi possível excluir o jogo.');
           }
-          carregarAlunos();
         },
       },
     ]);
@@ -64,29 +81,40 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: 'SQLite' }} />
+      <Stack.Screen options={{ title: 'Jogos' }} />
 
       <Text style={styles.label}>Nome</Text>
       <TextInput
         style={styles.input}
-        placeholder="Nome completo"
+        placeholder="Ex: The Last of Us"
         placeholderTextColor="#6c7086"
         value={nome}
         onChangeText={setNome}
       />
 
-      <Text style={styles.label}>Curso</Text>
+      <Text style={styles.label}>URL da Imagem</Text>
       <TextInput
         style={styles.input}
-        placeholder="Ex: Engenharia de Software"
+        placeholder="https://..."
         placeholderTextColor="#6c7086"
-        value={curso}
-        onChangeText={setCurso}
+        value={urlImagem}
+        onChangeText={setUrlImagem}
+        autoCapitalize="none"
+        keyboardType="url"
       />
 
-      <Pressable style={styles.botao} onPress={salvar}>
+      <Text style={styles.label}>Loja</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Ex: Steam, PlayStation Store"
+        placeholderTextColor="#6c7086"
+        value={loja}
+        onChangeText={setLoja}
+      />
+
+      <Pressable style={styles.botao} onPress={salvar} disabled={carregando}>
         <Text style={styles.botaoTexto}>
-          {editandoId !== null ? 'Salvar alterações' : 'Salvar'}
+          {carregando ? 'Salvando...' : editandoId !== null ? 'Salvar alterações' : 'Salvar'}
         </Text>
       </Pressable>
 
@@ -105,27 +133,32 @@ export default function HomeScreen() {
       )}
 
       <FlatList
-        data={alunos}
+        data={jogos}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.lista}
         renderItem={({ item }) => (
           <View style={styles.card}>
+            {item.urlImagem ? (
+              <Image source={{ uri: item.urlImagem }} style={styles.imagem} resizeMode="cover" />
+            ) : (
+              <View style={[styles.imagem, styles.imagemVazia]} />
+            )}
             <View style={styles.info}>
               <Text style={styles.nome}>{item.nome}</Text>
-              <Text style={styles.curso}>{item.curso}</Text>
+              <Text style={styles.loja}>{item.loja}</Text>
             </View>
             <View style={styles.acoes}>
               <Pressable onPress={() => editar(item)}>
                 <Text style={styles.editar}>Editar</Text>
               </Pressable>
               <Pressable onPress={() => excluir(item.id, item.nome)}>
-                <Text style={styles.excluir}>Excluir</Text>
+                <Text style={styles.excluirTexto}>Excluir</Text>
               </Pressable>
             </View>
           </View>
         )}
         ListEmptyComponent={
-          <Text style={styles.vazio}>Nenhum aluno cadastrado ainda.</Text>
+          <Text style={styles.vazio}>Nenhum jogo cadastrado ainda.</Text>
         }
       />
     </View>
@@ -201,13 +234,21 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#313244',
     borderRadius: 10,
-    padding: 16,
+    padding: 12,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#45475a',
+    gap: 12,
+  },
+  imagem: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+  },
+  imagemVazia: {
+    backgroundColor: '#45475a',
   },
   info: {
     flex: 1,
@@ -215,7 +256,6 @@ const styles = StyleSheet.create({
   acoes: {
     alignItems: 'flex-end',
     gap: 10,
-    marginLeft: 16,
   },
   nome: {
     fontSize: 16,
@@ -223,7 +263,7 @@ const styles = StyleSheet.create({
     color: '#cdd6f4',
     marginBottom: 4,
   },
-  curso: {
+  loja: {
     fontSize: 14,
     color: '#a6adc8',
   },
@@ -232,7 +272,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 14,
   },
-  excluir: {
+  excluirTexto: {
     color: '#f38ba8',
     fontWeight: '700',
     fontSize: 14,

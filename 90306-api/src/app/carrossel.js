@@ -1,26 +1,26 @@
 import { useEffect, useState } from 'react';
-import { Dimensions, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, FlatList, Image, StyleSheet, Text, View } from 'react-native';
 import { Stack } from 'expo-router';
-import { listarAlunos } from '../data/alunos';
+import { listarJogos } from '../services/jogos';
 
 const { width } = Dimensions.get('window');
 const cardWidth = width - 128;
 
 export default function CarrosselScreen() {
-  const [alunos, setAlunos] = useState([]);
+  const [jogos, setJogos] = useState([]);
 
   useEffect(() => {
-    setAlunos(listarAlunos());
+    listarJogos().then(setJogos).catch(() => {});
   }, []);
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Carrossel' }} />
 
-      <Text style={styles.titulo}>Itens cadastrados</Text>
+      <Text style={styles.titulo}>Jogos cadastrados</Text>
 
       <FlatList
-        data={alunos}
+        data={jogos}
         keyExtractor={(item) => item.id.toString()}
         horizontal
         pagingEnabled
@@ -28,13 +28,18 @@ export default function CarrosselScreen() {
         contentContainerStyle={styles.lista}
         renderItem={({ item, index }) => (
           <View style={styles.card}>
+            {item.urlImagem ? (
+              <Image source={{ uri: item.urlImagem }} style={styles.imagem} resizeMode="cover" />
+            ) : (
+              <View style={[styles.imagem, styles.imagemVazia]} />
+            )}
             <Text style={styles.numero}>#{index + 1}</Text>
             <Text style={styles.nome}>{item.nome}</Text>
-            <Text style={styles.curso}>{item.curso}</Text>
+            <Text style={styles.loja}>{item.loja}</Text>
           </View>
         )}
         ListEmptyComponent={
-          <Text style={styles.vazio}>Nenhum item cadastrado ainda.</Text>
+          <Text style={styles.vazio}>Nenhum jogo cadastrado ainda.</Text>
         }
       />
     </View>
@@ -59,7 +64,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: cardWidth,
-    minHeight: 220,
+    minHeight: 280,
     backgroundColor: '#313244',
     borderRadius: 10,
     padding: 24,
@@ -67,20 +72,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#45475a',
     justifyContent: 'center',
+    gap: 12,
+  },
+  imagem: {
+    width: '100%',
+    height: 140,
+    borderRadius: 8,
+  },
+  imagemVazia: {
+    backgroundColor: '#45475a',
   },
   numero: {
     color: '#89b4fa',
     fontSize: 14,
     fontWeight: '700',
-    marginBottom: 16,
   },
   nome: {
     color: '#cdd6f4',
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    marginBottom: 8,
   },
-  curso: {
+  loja: {
     color: '#a6adc8',
     fontSize: 16,
   },

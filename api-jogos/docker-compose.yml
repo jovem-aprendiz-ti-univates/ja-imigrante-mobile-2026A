@@ -1,0 +1,13 @@
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - dados:/app/dados
+    environment:
+      - DB_PATH=/app/dados/jogos.db
+    restart: unless-stopped
+
+volumes:
+  dados:
